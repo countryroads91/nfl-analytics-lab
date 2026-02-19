@@ -8,7 +8,6 @@ import glob
 from pathlib import Path
 
 import duckdb
-import streamlit as st
 from app.config import DB_PATH, DATA_DIR
 
 
@@ -16,21 +15,20 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
     """Build nfl.duckdb from parquet files when the DB doesn't exist."""
     import time
     t0 = time.time()
-    st.toast("🏈 Building database from parquet files… (first-run only)", icon="⚙️")
+    print("⚙️ Building database from parquet files… (first-run only)")
 
     con = duckdb.connect(db_path)
     try:
         # ── Step 1: Load each parquet file as a raw table ──────────────────
         parquet_files = sorted(glob.glob(os.path.join(data_dir, "*.parquet")))
         for pf in parquet_files:
-            table_name = Path(pf).stem  # e.g. "PASS", "PBP", etc.
-            # Use forward slashes for DuckDB path (works cross-platform)
+            table_name = Path(pf).stem
             safe_path = pf.replace("\\", "/")
-            con.execute(f"CREATE TABLE IF NOT EXISTS \"{table_name}\" AS SELECT * FROM read_parquet('{safe_path}')")
+            con.execute(f'CREATE TABLE IF NOT EXISTS "{table_name}" AS SELECT * FROM read_parquet(\'{safe_path}\')')
+            print(f"  ✅ Loaded {table_name}")
 
         # ── Step 2: Create canonical joined tables (mirrors ingest.py) ─────
 
-        # games: GAME + SCHEDULE joined on gid
         con.execute("""
             CREATE TABLE IF NOT EXISTS games AS
             SELECT
@@ -41,7 +39,6 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
             LEFT JOIN "SCHEDULE" s ON g.gid = s.gid
         """)
 
-        # plays: key columns from PBP
         con.execute("""
             CREATE TABLE IF NOT EXISTS plays AS
             SELECT
@@ -51,7 +48,6 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
             FROM "PBP"
         """)
 
-        # drives: from DRIVE
         con.execute("""
             CREATE TABLE IF NOT EXISTS drives AS
             SELECT
@@ -60,7 +56,6 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
             FROM "DRIVE"
         """)
 
-        # passes: PASS joined to plays
         con.execute("""
             CREATE TABLE IF NOT EXISTS passes AS
             SELECT
@@ -70,7 +65,6 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
             LEFT JOIN plays pl ON p.pid = pl.pid
         """)
 
-        # rushes: RUSH joined to plays
         con.execute("""
             CREATE TABLE IF NOT EXISTS rushes AS
             SELECT
@@ -80,7 +74,6 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
             LEFT JOIN plays pl ON r.pid = pl.pid
         """)
 
-        # Simple alias tables (mirror ingest.py canonical tables)
         _simple = [
             ("penalties",      'SELECT uid, pid, ptm, pen, "desc", cat, pey, act FROM "PENALTY"'),
             ("sacks",          'SELECT uid, pid, qb, sk, value, ydsl FROM "SACK"'),
@@ -105,10 +98,9 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
             con.execute(f"CREATE TABLE IF NOT EXISTS {view_name} AS {sql}")
 
         elapsed = round(time.time() - t0, 1)
-        st.toast(f"✅ Database ready ({elapsed}s)", icon="🏈")
+        print(f"✅ Database ready ({elapsed}s)")
     except Exception as exc:
         con.close()
-        # Remove broken DB so next run can retry
         try:
             os.remove(db_path)
         except OSError:
@@ -118,15 +110,21 @@ def _build_db_from_parquets(db_path: str, data_dir: str) -> None:
     con.close()
 
 
-@st.cache_resource
-def get_connection():
-    """Return a read-only DuckDB connection (cached per Streamlit session).
-
-    Automatically builds the database from parquet files if it doesn't exist.
-    """
+def _ensure_db():
+    """Build DB if it doesn't exist. Called once before caching the connection."""
     if not os.path.exists(DB_PATH):
         _build_db_from_parquets(DB_PATH, DATA_DIR)
-    return duckdb.connect(DB_PATH, read_only=True)
+
+
+# Build outside the cached function so no st.* calls happen inside cache
+_ensure_db()
+
+
+def get_connection():
+    """Return a read-only DuckDB connection."""
+    if not hasattr(get_connection, "_con") or get_connection._con is None:
+        get_connection._con = duckdb.connect(DB_PATH, read_only=True)
+    return get_connection._con
 
 
 def query(sql: str, params=None):
