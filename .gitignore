@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files — DuckDB is too large; parquets are committed (< 100 MB each)
+data_processed/*.duckdb
+data_raw/
+
+# Test artifacts
+test_*.py
+TEST_*.md
+TESTING_*.md
+FINAL_*.txt
+TEST_ARTIFACTS*.txt
+
+# Logs
+*.log

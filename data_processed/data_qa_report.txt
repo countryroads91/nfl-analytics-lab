@@ -1,0 +1,212 @@
+NFL ANALYTICS DATA PIPELINE - QA REPORT
+================================================================================
+Generated: 2026-02-19T05:52:27.067018
+================================================================================
+
+SUMMARY
+--------------------------------------------------------------------------------
+Total tables loaded: 27
+Total rows ingested: 3897362
+Database location: /sessions/clever-epic-galileo/nfl_analytics/data_processed/nfl.duckdb
+
+DATA DICTIONARY
+--------------------------------------------------------------------------------
+
+BLOCK:
+  Rows: 867
+  Columns: 4
+  Missing: 13.21%
+  High-missing columns (>50%):
+    - brcv: 52.83%
+
+CONV:
+  Rows: 1561
+  Columns: 6
+  Missing: 22.41%
+  High-missing columns (>50%):
+    - bc: 72.97%
+
+DEFENSE:
+  Rows: 171497
+  Columns: 26
+  Missing: 0.0%
+  Seasons: -8-20
+
+DRIVE:
+  Rows: 123801
+  Columns: 24
+  Missing: 0.0%
+
+FGXP:
+  Rows: 44758
+  Columns: 5
+  Missing: 0.0%
+
+FUMBLE:
+  Rows: 15361
+  Columns: 6
+  Missing: 7.13%
+
+GAME:
+  Rows: 5324
+  Columns: 17
+  Missing: 5.78%
+  Seasons: 2000-2019
+
+INJURY:
+  Rows: 35054
+  Columns: 7
+  Missing: 6.33%
+
+INTERCPT:
+  Rows: 10202
+  Columns: 4
+  Missing: 0.0%
+
+KICKER:
+  Rows: 10548
+  Columns: 12
+  Missing: 0.0%
+  Seasons: -2-26
+
+KOFF:
+  Rows: 52764
+  Columns: 7
+  Missing: 4.94%
+
+LEAGUE:
+  Rows: 32
+  Columns: 8
+  Missing: 11.33%
+  High-missing columns (>50%):
+    - tname2: 90.63%
+
+OFFENSE:
+  Rows: 111028
+  Columns: 33
+  Missing: 0.0%
+  Seasons: 1-22
+
+PASS:
+  Rows: 359678
+  Columns: 9
+  Missing: 10.09%
+  High-missing columns (>50%):
+    - dfb: 88.91%
+
+PBP:
+  Rows: 873232
+  Columns: 87
+  Missing: 69.78%
+  High-missing columns (>50%):
+    - pey3: 100.0%
+    - ptm3: 99.99%
+    - pen3: 99.99%
+    - desc3: 99.99%
+    - cat3: 99.99%
+
+PLAY:
+  Rows: 873231
+  Columns: 31
+  Missing: 0.0%
+
+PLAYER:
+  Rows: 11767
+  Columns: 25
+  Missing: 4.09%
+  High-missing columns (>50%):
+    - pos2: 93.46%
+
+PUNT:
+  Rows: 50509
+  Columns: 8
+  Missing: 3.97%
+
+REDZONE:
+  Rows: 54094
+  Columns: 15
+  Missing: 0.0%
+
+RUSH:
+  Rows: 289846
+  Columns: 6
+  Missing: 0.0%
+
+SACK:
+  Rows: 26694
+  Columns: 6
+  Missing: 0.0%
+
+SAFETY:
+  Rows: 182
+  Columns: 2
+  Missing: 0.0%
+
+SCHEDULE:
+  Rows: 5324
+  Columns: 9
+  Missing: 0.0%
+  Seasons: 2000-2019
+
+SNAP:
+  Rows: 156975
+  Columns: 8
+  Missing: 5.02%
+
+TACKLE:
+  Rows: 576133
+  Columns: 4
+  Missing: 0.0%
+
+TD:
+  Rows: 26252
+  Columns: 9
+  Missing: 0.0%
+
+TEAM:
+  Rows: 10648
+  Columns: 226
+  Missing: 0.0%
+
+
+QA CHECK RESULTS
+--------------------------------------------------------------------------------
+
+GID Uniqueness: PASS
+  Total: 5324, Unique: 5324
+
+PID Uniqueness: PASS
+  Total plays: 873232, Unique (gid, pid): 873232
+
+Season Coverage:
+  defense_stats: -8-20 (22 seasons)
+  games: 2000-2019 (20 seasons)
+  offense_stats: 1-22 (22 seasons)
+
+High Missingness Tables (>10%):
+  PBP: 69.78%
+  CONV: 22.41%
+  BLOCK: 13.21%
+  LEAGUE: 11.33%
+  PASS: 10.09%
+
+Sanity Checks:
+  Yards: PASS (0 suspicious)
+  Quarters: WARN (max=6)
+  Play types: 8 types detected
+    - PASS: 383969
+    - RUSH: 289848
+    - KOFF: 51610
+    - PUNT: 50509
+    - NOPL: 49823
+    - FGXP: 44757
+    - CONV: 1561
+    - ONSD: 1155
+
+Join Integrity:
+  PASS: 100.0% of records matched to plays
+  RUSH: 100.0% of records matched to plays
+  SACK: 100.0% of records matched to plays
+
+================================================================================
+END OF REPORT
