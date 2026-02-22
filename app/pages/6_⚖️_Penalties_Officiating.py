@@ -52,6 +52,41 @@ with st.sidebar:
 st.header("A. Penalty Overview")
 
 @st.cache_data
+def load_games_count(season_min, season_max):
+    """Load games per season."""
+    sql = """
+    SELECT
+        g.seas,
+        COUNT(DISTINCT g.gid) AS game_count
+    FROM games g
+    WHERE g.seas >= ? AND g.seas <= ?
+    GROUP BY g.seas
+    """
+    return query(sql, (season_min, season_max))
+
+
+@st.cache_data
+def load_all_penalties(season_min, season_max, selected_teams_tuple):
+    """Load all penalties (accepted, declined, offsetting)."""
+    sql = """
+    SELECT
+        pen.uid,
+        pen.pid,
+        pen.ptm AS penalized_team,
+        pen."desc" AS penalty_desc,
+        pen.cat AS category,
+        pen.pey AS penalty_yards,
+        pen.act AS action,
+        g.seas AS season
+    FROM penalties pen
+    JOIN plays p ON pen.pid = p.pid
+    JOIN games g ON p.gid = g.gid
+    WHERE g.seas >= ? AND g.seas <= ?
+    """
+    return query(sql, (season_min, season_max))
+
+
+@st.cache_data
 def load_penalties(season_min, season_max, selected_teams_tuple, penalty_accepted_only_val):
     """Load penalty data. Fixed: use p.ptso/p.ptsd from plays, not g.ptso (games doesn't have it).
     Fixed: use quotes around desc as it's a SQL reserved word.
@@ -158,19 +193,6 @@ if not penalties_df.empty:
 st.header("B. Penalties by Team")
 
 if not penalties_df.empty:
-    @st.cache_data
-    def load_games_count(season_min, season_max):
-        """Load games per season. Fixed: accept filter values as explicit parameters."""
-        sql = """
-        SELECT
-            g.seas,
-            COUNT(DISTINCT g.gid) AS game_count
-        FROM games g
-        WHERE g.seas >= ? AND g.seas <= ?
-        GROUP BY g.seas
-        """
-        return query(sql, (season_min, season_max))
-
     games_per_season = load_games_count(season_range[0], season_range[1])
 
     # Use filtered penalties_df for calculations
@@ -356,26 +378,6 @@ if not penalties_df.empty and len(penalties_per_game) > 1:
 st.header("F. Penalty Type Deep Dive & Acceptance Rates")
 
 if not penalties_df.empty:
-    @st.cache_data
-    def load_all_penalties(season_min, season_max, selected_teams_tuple):
-        """Load all penalties (accepted, declined, offsetting). Fixed: accept filter values as explicit parameters."""
-        sql = """
-        SELECT
-            pen.uid,
-            pen.pid,
-            pen.ptm AS penalized_team,
-            pen."desc" AS penalty_desc,
-            pen.cat AS category,
-            pen.pey AS penalty_yards,
-            pen.act AS action,
-            g.seas AS season
-        FROM penalties pen
-        JOIN plays p ON pen.pid = p.pid
-        JOIN games g ON p.gid = g.gid
-        WHERE g.seas >= ? AND g.seas <= ?
-        """
-        return query(sql, (season_min, season_max))
-
     all_penalties = load_all_penalties(
         season_range[0],
         season_range[1],
