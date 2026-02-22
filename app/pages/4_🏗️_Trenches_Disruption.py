@@ -322,23 +322,23 @@ with col1:
 with col2:
     team2 = st.selectbox("Team 2", options=sorted(TEAM_COLORS.keys()), index=1)
 
-if team1 and team2:
-    @st.cache_data
-    def get_team_matchup_stats(t1, t2, season_min, season_max):
-        sql = """
-        SELECT
-            CASE WHEN p.off = ? THEN 'Team 1' ELSE 'Team 2' END AS perspective,
-            CASE WHEN p.off = ? THEN ? ELSE ? END AS team,
-            AVG(r.yds) AS avg_rush_yards,
-            100.0 * SUM(CASE WHEN r.succ = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS rush_success_rate
-        FROM rushes r
-        JOIN plays p ON r.pid = p.pid
-        JOIN games g ON p.gid = g.gid
-        WHERE p.off IN (?, ?) AND g.seas >= ? AND g.seas <= ?
-        GROUP BY perspective, team
-        """
-        return query(sql, (t1, t1, t1, t2, t1, t2, season_min, season_max))
+@st.cache_data
+def get_team_matchup_stats(t1, t2, season_min, season_max):
+    sql = """
+    SELECT
+        CASE WHEN p.off = ? THEN 'Team 1' ELSE 'Team 2' END AS perspective,
+        CASE WHEN p.off = ? THEN ? ELSE ? END AS team,
+        AVG(r.yds) AS avg_rush_yards,
+        100.0 * SUM(CASE WHEN r.succ = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS rush_success_rate
+    FROM rushes r
+    JOIN plays p ON r.pid = p.pid
+    JOIN games g ON p.gid = g.gid
+    WHERE p.off IN (?, ?) AND g.seas >= ? AND g.seas <= ?
+    GROUP BY perspective, team
+    """
+    return query(sql, (t1, t1, t1, t2, t1, t2, season_min, season_max))
 
+if team1 and team2:
     try:
         matchup_stats = get_team_matchup_stats(team1, team2, season_range[0], season_range[1])
         if not matchup_stats.empty:

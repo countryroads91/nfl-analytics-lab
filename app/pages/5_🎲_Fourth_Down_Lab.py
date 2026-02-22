@@ -223,11 +223,10 @@ if len(reasonable_4th) > 0:
 
     if not latest_aggression.empty:
         # Success rate for those go-for-its
-        go_for_it_by_team = reasonable_4th[reasonable_4th['decision'] == 'Go for It'].groupby(['season', 'team']).agg({
-            'succ': lambda x: (x == 'Y').sum()
-        }).reset_index()
-        go_for_it_by_team['attempt_count'] = reasonable_4th[reasonable_4th['decision'] == 'Go for It'].groupby(['season', 'team']).size().values
-        go_for_it_by_team.columns = ['season', 'team', 'success_count', 'attempt_count']
+        go_for_it_by_team = reasonable_4th[reasonable_4th['decision'] == 'Go for It'].groupby(['season', 'team']).agg(
+            success_count=('succ', lambda x: (x == 'Y').sum()),
+            attempt_count=('succ', 'count')
+        ).reset_index()
         go_for_it_by_team['success_rate'] = (go_for_it_by_team['success_count'] / go_for_it_by_team['attempt_count'] * 100).round(1)
 
         latest_aggression = latest_aggression.merge(

@@ -114,6 +114,9 @@ sacks_df = load_sack_data(season_select)
 plays_df = load_play_totals(season_select)
 players_df = load_player_names()
 
+# Build qb_options: list of passer codes (used in Section D & E dropdowns)
+qb_options = sorted(passes_df['psr'].dropna().unique().tolist())
+
 # Parse location into depth and direction IMMEDIATELY after loading
 def parse_location(loc):
     if pd.isna(loc):

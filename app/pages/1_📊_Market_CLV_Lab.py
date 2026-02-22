@@ -105,8 +105,8 @@ def load_games_data(season_min, season_max, week_min, week_max, temp_min, temp_m
 
     return df
 
-games_df = load_games_data(season_range[0], season_range[1], temp_range[0], temp_range[1],
-                          week_range[0], week_range[1])
+games_df = load_games_data(season_range[0], season_range[1], week_range[0], week_range[1],
+                          temp_range[0], temp_range[1])
 
 # Apply team filters
 if selected_teams:
